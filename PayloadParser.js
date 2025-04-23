@@ -3,8 +3,6 @@ function parseUplink(device, payload)
     // Payload is json
     var data = payload.asJsonObject();
 
-    env.log(data);
-
     if (data.Type == "data")
     {
         // Tarifa 1
@@ -32,11 +30,16 @@ function parseUplink(device, payload)
         if (ep != null && data.Tarifa5 != null)
             ep.updateGenericSensorStatus(data.Tarifa5);
 
-        // Temperature
+        // Sensor de puerta controlador
         var ep = device.endpoints.byAddress("10");
-        if (ep != null && data.Temperature != null)
-            ep.updateTemperatureSensorStatus(data.Temperature);
-
+        if (ep != null & data.Switch !=null)
+            if (data.Switch){
+                ep.updateIASSensorStatus(iasSensorState.active)
+            } else {
+                ep.updateIASSensorStatus(iasSensorState.idle)
+            }
+        }
+       
         // Potencia activa
         var ep = device.endpoints.byAddress("20");
         if (ep != null && data.Current != null)
@@ -47,12 +50,21 @@ function parseUplink(device, payload)
         if (ep != null && data.Power != null)
             ep.updateApplianceStatus(data.Power);
 
-        // Dimmer
-        //var ep = device.endpoints.byAddress("40");
-        //if (ep != null)
-        //   ep.updateDimmerStatus(true, 80);    
+       
+        //Control de brillo diurno
+        var ep = device.endpoints.byAddress("40");
+        if (ep != null && data.DayBright != null)
+        {
+            ep.updateDimmerStatus(data.DayBright.isOn, data.DayBright.dimValue);
+        }    
         
-    }
+        //Control de brillo Nocturno
+        var ep = device.endpoints.byAddress("50");
+        if (ep != null && data.NightBright != null)
+        {
+            ep.updateDimmerStatus(data.NightBright.isOn, data.NightBright.dimValue);
+        }    
+    
 
     if (data.Type == "response")
     {
@@ -71,7 +83,7 @@ function parseUplink(device, payload)
 function buildDownlink(device, endpoint, command, payload) 
 { 
 	payload.buildResult = downlinkBuildResult.ok; 
-
+    env.log(command);
 	switch (command.type) {
 	 	case commandType.management: 
 	 	 	switch (command.management.type) { 
@@ -90,28 +102,63 @@ function buildDownlink(device, endpoint, command, payload)
         case commandType.onOff:
             switch (command.onOff.type) { 
 	 	 	    case onOffCommandType.turnOn:
-	 	 	 	 	var obj = { 
-                        CommandId: command.commandId,
-                        Sign: endpoint.address, 
-                        Command: "TurnOn", 
-                    };
-                    payload.setAsJsonObject(obj);
-                    payload.requiresResponse = true;
-	 	 	 	 	break; 
-	 	 	 	case onOffCommandType.turnOff: 
-	 	 	 	 	var obj = { 
-                        CommandId: command.commandId,
-                        Sign: endpoint.address, 
-                        Command: "TurnOff", 
-                    };
-                    payload.setAsJsonObject(obj);
-                    payload.requiresResponse = true;
-	 	 	 	 	break; 
+	 	 	 	 	if (endpoint.Address == 40 || endpoint.Address == 50)
+                    {
+                        var obj = { 
+                            CommandId: command.commandId,
+                            Sign: endpoint.address, 
+                            Command: "TurnOnDimmer"
+                        };
+                        payload.setAsJsonObject(obj);
+                        payload.requiresResponse = true;
+                        break;
+                    } else{
+                        var obj = { 
+                            CommandId: command.commandId,
+                            Sign: endpoint.address, 
+                            Command: "TurnOn", 
+                        };
+                        payload.setAsJsonObject(obj);
+                        payload.requiresResponse = true;
+	 	 	 	 	    break; 
+                    } 
+                case onOffCommandType.turnOff:
+                    if (endpoint.Address == 40 || endpoint.Address == 50)
+                    {
+                        var obj = { 
+                            CommandId: command.commandId,
+                            Sign: endpoint.address, 
+                            Command: "TurnOffDimmer"
+                        };
+                        payload.setAsJsonObject(obj);
+                        payload.requiresResponse = true;
+                        break;
+                    } else{
+                        var obj = { 
+                            CommandId: command.commandId,
+                            Sign: endpoint.address, 
+                            Command: "TurnOff", 
+                        };
+                        payload.setAsJsonObject(obj);
+                        payload.requiresResponse = true;
+	 	 	 	 	    break; 
+                    } 
+	 	 	 	 	
 	 	 	 	default: 
 	 	 	 	 	payload.buildResult = downlinkBuildResult.unsupported;
 	 	 	 	 	break; 
 	 	 	} 
-	 	 	break;  
+	 	 	break;
+        case commandType.dimmer:
+            var obj = { 
+                CommandId: command.commandId,
+                Command: "SetLevel",
+                Sign: endpoint.Address,
+                Value: command.dimmer.level
+            };
+            payload.setAsJsonObject(obj);
+            payload.requiresResponse = true;
+			break;  
 	 	default: 
 	 	 	payload.buildResult = downlinkBuildResult.unsupported;
             payload.errorMessage = { en: "Unsupported command", es: "Comando no soportado" };
