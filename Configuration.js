@@ -24,37 +24,46 @@ function getEndpoints(deviceAddress, endpoints)
   // temperature sensor, while the second one is a carbon dioxide sensor.
 
   var ep = endpoints.addEndpoint("1", "Tarifa 1", endpointType.genericSensor);
-  ep.variableTypeId = 1125;
+  ep.variableTypeId = 1004;
   ep.accessType = endpointAccessType.readWriteCommand;
   ep.operationSecurityLevel = endpointOperationSecurityLevel.medium;
 
   var ep = endpoints.addEndpoint("2", "Tarifa 2", endpointType.genericSensor);
-  ep.variableTypeId = 1125;
+  ep.variableTypeId = 1004;
   ep.accessType = endpointAccessType.readWriteCommand;
   ep.operationSecurityLevel = endpointOperationSecurityLevel.medium;
 
   var ep = endpoints.addEndpoint("3", "Tarifa 3", endpointType.genericSensor);
-  ep.variableTypeId = 1125;
+  ep.variableTypeId = 1004;
   ep.accessType = endpointAccessType.readWriteCommand;
   ep.operationSecurityLevel = endpointOperationSecurityLevel.medium;
 
   var ep = endpoints.addEndpoint("4", "Tarifa 4", endpointType.genericSensor);
-  ep.variableTypeId = 1125;
+  ep.variableTypeId = 1004;
   ep.accessType = endpointAccessType.readWriteCommand;
   ep.operationSecurityLevel = endpointOperationSecurityLevel.medium;
 
   var ep = endpoints.addEndpoint("5", "Tarifa 5", endpointType.genericSensor);
-  ep.variableTypeId = 1125;
+  ep.variableTypeId = 1004;
   ep.accessType = endpointAccessType.readWriteCommand;
   ep.operationSecurityLevel = endpointOperationSecurityLevel.medium;
-
-  endpoints.addEndpoint("10", "Temperature sensor", endpointType.temperatureSensor);
+  
+  endpoints.addEndpoint("10", "Puerta Controlador", endpointType.iasSensor, iasEndpointSubType.doorSensor);
 
   endpoints.addEndpoint("20", "Potencia Activa", endpointType.activePowerSensor);
 
   var ep = endpoints.addEndpoint("30", "Power", endpointType.appliance);
   ep.operationSecurityLevel = endpointOperationSecurityLevel.medium;
 
+   var ep = endpoints.addEndpoint("40", "Nivel de Brillo Diurno", endpointType.dimmer);
+   ep.accessType = endpointAccessType.readWriteCommand;
+   ep.operationSecurityLevel = endpointOperationSecurityLevel.medium;
+
+   var ep = endpoints.addEndpoint("50", "Nivel de Brillo Nocturno", endpointType.dimmer);
+   ep.accessType = endpointAccessType.readWriteCommand;
+   ep.operationSecurityLevel = endpointOperationSecurityLevel.medium;
+
+  
 
 }
 
@@ -100,7 +109,6 @@ function updateEndpointUIRules(endpoint, rules)
   // - Endpoints cannot be deleted.
   // - The endpoint subtype can be changed, but only for the second 
   //   endpoint.
-  
-   rules.canDelete = false;
-  // rules.canEditSubType = (endpoint.address == "2");
+   rules.canDelete = true;
+   // rules.canEditSubType = (endpoint.address == "2");
 }
